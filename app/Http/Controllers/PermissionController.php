@@ -11,7 +11,7 @@ class PermissionController extends Controller
 {
     public function index()
     {
-        $permissions = Permission::latest()->paginate(10);
+        $permissions = Permission::latest()->paginate(1);
         $permissions->getCollection()->transform(function ($permission) {
             return [
                 'id' => $permission->id,
@@ -37,4 +37,22 @@ class PermissionController extends Controller
 
         return to_route('permissions.index')->with('message', 'Permission created successfully.');
     }
+
+    public function update(Request $request, Permission $permission)
+		{
+				$request->validate([
+						'name' => 'required|string|max:255|unique:permissions,name,' . $permission->id,
+				]);
+
+				$permission->update(['name' => $request->name, 'description' => $request->description]);
+
+				return to_route('permissions.index')->with('message', 'Permission updated successfully.');
+		}
+
+		public function destroy(Permission $permission)
+		{
+				$permission->delete();
+
+				return to_route('permissions.index')->with('message', 'Permission deleted successfully.');
+		}
 }

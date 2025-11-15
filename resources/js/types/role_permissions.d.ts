@@ -8,6 +8,6 @@ interface SinglePermission {
     updated_at: string;
 }
 
-export interface Permission extends Pagination{
+export interface Permission extends Pagination {
     data: SinglePermission[];
 }
