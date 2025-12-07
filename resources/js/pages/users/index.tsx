@@ -16,6 +16,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
+import { usePermissions } from '@/hooks/user-permissions';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { User } from '@/types/user';
@@ -40,6 +41,8 @@ export default function Users({ users }: { users: User }) {
 	const { flash } = usePage<{ flash: { message?: string; error: string } }>()
 		.props;
 
+	const { can } = usePermissions();
+
 	useEffect(() => {
 		if (flash.message) {
 			toast.success(flash.message);
@@ -54,9 +57,11 @@ export default function Users({ users }: { users: User }) {
 					<CardHeader className="flex items-center justify-between">
 						<CardTitle>Users Managements</CardTitle>
 						<CardAction>
-							<Link href={'/users/create'}>
-								<Button variant={'default'}>Add New</Button>
-							</Link>
+							{can('create_users') && (
+								<Link href={'/users/create'}>
+									<Button variant={'default'}>Add New</Button>
+								</Link>
+							)}
 						</CardAction>
 					</CardHeader>
 					<hr />
@@ -106,26 +111,30 @@ export default function Users({ users }: { users: User }) {
 										</TableCell>
 										<TableCell>{user.created_at}</TableCell>
 										<TableCell>
-											<Link
-												href={`/users/${user.id}/edit`}
-											>
-												<Button
-													variant={'outline'}
-													size={'sm'}
+											{can('edit_users') && (
+												<Link
+													href={`/users/${user.id}/edit`}
 												>
-													Edit
+													<Button
+														variant={'outline'}
+														size={'sm'}
+													>
+														Edit
+													</Button>
+												</Link>
+											)}
+											{can('delete_users') && (
+												<Button
+													className="ms-2"
+													variant={'destructive'}
+													size={'sm'}
+													onClick={() =>
+														deleteUser(user.id)
+													}
+												>
+													Delete
 												</Button>
-											</Link>
-											<Button
-												className="ms-2"
-												variant={'destructive'}
-												size={'sm'}
-												onClick={() =>
-													deleteUser(user.id)
-												}
-											>
-												Delete
-											</Button>
+											)}
 										</TableCell>
 									</TableRow>
 								))}

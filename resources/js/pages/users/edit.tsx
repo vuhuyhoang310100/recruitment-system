@@ -22,7 +22,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 	},
 ];
 
-export default function EditUsers({ roles, user }: { roles: string[], user: UserRole }) {
+export default function EditUsers({
+	roles,
+	user,
+}: {
+	roles: string[];
+	user: UserRole;
+}) {
 	const roleList = user.roles.map((role) => role.name);
 
 	const { data, setData, put, processing, errors } = useForm({
@@ -94,7 +100,9 @@ export default function EditUsers({ roles, user }: { roles: string[], user: User
 										>
 											<Checkbox
 												id={role}
-												checked={data.roles.includes(role)}
+												checked={data.roles.includes(
+													role,
+												)}
 												onCheckedChange={(checked) => {
 													if (checked) {
 														setData('roles', [
@@ -106,16 +114,13 @@ export default function EditUsers({ roles, user }: { roles: string[], user: User
 															'roles',
 															data.roles.filter(
 																(p) =>
-																	p !==
-																	role,
+																	p !== role,
 															),
 														);
 													}
 												}}
 											/>
-											<Label htmlFor={role}>
-												{role}
-											</Label>
+											<Label htmlFor={role}>{role}</Label>
 										</div>
 									))}
 								</div>

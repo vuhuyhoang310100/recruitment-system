@@ -26,6 +26,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
+import { usePermissions } from '@/hooks/user-permissions';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Permission, SinglePermission } from '@/types/role_permissions';
@@ -54,6 +55,8 @@ export default function Permissions({
 	const { flash } = usePage<{ flash: { message?: string; error: string } }>()
 		.props;
 
+	const { can } = usePermissions();
+
 	useEffect(() => {
 		if (flash.message) {
 			setOpenAddNewPermissionDialog(false);
@@ -62,7 +65,16 @@ export default function Permissions({
 		}
 	}, [flash.message]);
 
-	const { data, setData, post, put, delete: destroy, processing, errors, reset } = useForm({
+	const {
+		data,
+		setData,
+		post,
+		put,
+		delete: destroy,
+		processing,
+		errors,
+		reset,
+	} = useForm({
 		id: '',
 		name: '',
 		description: '',
@@ -107,14 +119,16 @@ export default function Permissions({
 					<CardHeader className="flex items-center justify-between">
 						<CardTitle>Permissions Managements</CardTitle>
 						<CardAction>
-							<Button
-								variant="default"
-								onClick={() =>
-									setOpenAddNewPermissionDialog(true)
-								}
-							>
-								Add new
-							</Button>
+							{can('create_permissions') && (
+								<Button
+									variant="default"
+									onClick={() =>
+										setOpenAddNewPermissionDialog(true)
+									}
+								>
+									Add new
+								</Button>
+							)}
 						</CardAction>
 					</CardHeader>
 					<hr />
@@ -160,23 +174,31 @@ export default function Permissions({
 											{permission.updated_at}
 										</TableCell>
 										<TableCell>
-											<Button
-												variant={'outline'}
-												size={'sm'}
-												onClick={() => edit(permission)}
-											>
-												Edit
-											</Button>
-											<Button
-												className="ms-2"
-												variant={'destructive'}
-												size={'sm'}
-												onClick={() =>{
-													deletePermission(permission.id);
-												}}
-											>
-												Delete
-											</Button>
+											{can('edit_permissions') && (
+												<Button
+													variant={'outline'}
+													size={'sm'}
+													onClick={() =>
+														edit(permission)
+													}
+												>
+													Edit
+												</Button>
+											)}
+											{can('delete_permissions') && (
+												<Button
+													className="ms-2"
+													variant={'destructive'}
+													size={'sm'}
+													onClick={() => {
+														deletePermission(
+															permission.id,
+														);
+													}}
+												>
+													Delete
+												</Button>
+											)}
 										</TableCell>
 									</TableRow>
 								))}
@@ -184,12 +206,17 @@ export default function Permissions({
 						</Table>
 					</CardContent>
 					{permissions.data.length > 0 ? (
-						<TablePagination total={permissions.total} from={permissions.from} to={permissions.to} links={permissions.links} />
-					):
-					(
-						<div className='flex h-full items-center justify-center'>No Results Found!</div>
-					)
-				}
+						<TablePagination
+							total={permissions.total}
+							from={permissions.from}
+							to={permissions.to}
+							links={permissions.links}
+						/>
+					) : (
+						<div className="flex h-full items-center justify-center">
+							No Results Found!
+						</div>
+					)}
 				</Card>
 				{/* add new permission diaglog start */}
 				<Dialog

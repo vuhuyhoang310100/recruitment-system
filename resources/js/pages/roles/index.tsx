@@ -16,6 +16,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
+import { usePermissions } from '@/hooks/user-permissions';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Role } from '@/types/role_permissions';
@@ -40,6 +41,8 @@ export default function Roles({ roles }: { roles: Role }) {
 	const { flash } = usePage<{ flash: { message?: string; error: string } }>()
 		.props;
 
+	const { can } = usePermissions();
+
 	useEffect(() => {
 		if (flash.message) {
 			toast.success(flash.message);
@@ -54,9 +57,11 @@ export default function Roles({ roles }: { roles: Role }) {
 					<CardHeader className="flex items-center justify-between">
 						<CardTitle>Roles Managements</CardTitle>
 						<CardAction>
-							<Link href={'/roles/create'}>
-								<Button variant={'default'}>Add New</Button>
-							</Link>
+							{can('create_roles') && (
+								<Link href={'/roles/create'}>
+									<Button variant={'default'}>Add New</Button>
+								</Link>
+							)}
 						</CardAction>
 					</CardHeader>
 					<hr />
@@ -92,32 +97,44 @@ export default function Roles({ roles }: { roles: Role }) {
 										<TableCell>
 											{role.description}
 										</TableCell>
-									<TableCell className='flex items-center flex-wrap gap-2'>
-										{role.permissions.map((permission, idx) => (
-											<Badge key={idx} variant={'outline'} className="me-1">{permission.name}</Badge>
-										))}
-									</TableCell>
-											<TableCell>
-											<Link
-												href={`/roles/${role.id}/edit`}
-											>
-												<Button
-													variant={'outline'}
-													size={'sm'}
+										<TableCell className="flex flex-wrap items-center gap-2">
+											{role.permissions.map(
+												(permission, idx) => (
+													<Badge
+														key={idx}
+														variant={'outline'}
+														className="me-1"
+													>
+														{permission.name}
+													</Badge>
+												),
+											)}
+										</TableCell>
+										<TableCell>
+											{can('edit_roles') && (
+												<Link
+													href={`/roles/${role.id}/edit`}
 												>
-													Edit
+													<Button
+														variant={'outline'}
+														size={'sm'}
+													>
+														Edit
+													</Button>
+												</Link>
+											)}
+											{can('delete_roles') && (
+												<Button
+													className="ms-2"
+													variant={'destructive'}
+													size={'sm'}
+													onClick={() =>
+														deleteRole(role.id)
+													}
+												>
+													Delete
 												</Button>
-											</Link>
-											<Button
-												className="ms-2"
-												variant={'destructive'}
-												size={'sm'}
-												onClick={() =>
-													deleteRole(role.id)
-												}
-											>
-												Delete
-											</Button>
+											)}
 										</TableCell>
 									</TableRow>
 								))}
