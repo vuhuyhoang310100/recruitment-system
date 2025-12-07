@@ -47,4 +47,15 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+	// Detach roles and permissions when deleting a user
+	protected static function booted()
+    {
+        parent::booted();
+
+        static::deleting(function ($user) {
+            $user->roles()->detach();
+            $user->permissions()->detach();
+        });
+    }
 }
