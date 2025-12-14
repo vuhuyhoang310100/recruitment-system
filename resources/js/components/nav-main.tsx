@@ -18,7 +18,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
 			<SidebarMenu>
 				{items.map(
 					(item) =>
-						can(item.permission) && (
+						(!item.permission || can(item.permission)) && (
 							<SidebarMenuItem key={item.title}>
 								<SidebarMenuButton
 									asChild

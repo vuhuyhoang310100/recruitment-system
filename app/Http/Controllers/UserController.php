@@ -3,34 +3,42 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Traits\Filterable;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+	use Filterable;
+
+	protected array $searchable = [
+		'name',
+		'email',
+	];
 	/**
 	 * Display a listing of the resource.
 	 */
-	public function index()
+	public function index(Request $request)
 	{
 		$users = User::query()
+			->search($request->q)
+			->filter($request->only(['status']))
 			->latest()
 			->paginate(10)
 			->withQueryString()
-			->through(function ($user) {
-				return [
-					'id' => $user->id,
-					'name' => $user->name,
-					'email' => $user->email,
-					'roles' => $user->getRoleNames(),
-					'created_at' => $user->created_at->format('d-m-Y'),
-					'updated_at' => $user->updated_at->format('d-m-Y'),
-				];
-			});
+			->through(fn($user) => [
+				'id' => $user->id,
+				'name' => $user->name,
+				'email' => $user->email,
+				'roles' => $user->getRoleNames(),
+				'created_at' => $user->created_at->format('d-m-Y'),
+				'updated_at' => $user->updated_at->format('d-m-Y'),
+			]);
 
 		return Inertia::render('users/index', [
 			'users' => $users,
+			'filters' => $request->only(['q', 'status']),
 		]);
 	}
 
@@ -66,7 +74,7 @@ class UserController extends Controller
 		if ($request->has('roles')) {
 			$user->syncRoles($request->roles);
 		}
-		return to_route('users.index')->with('success', 'User created successfully.');
+		return to_route('users.index')->with('message', 'User created successfully.');
 	}
 
 	/**

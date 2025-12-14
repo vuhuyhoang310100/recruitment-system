@@ -8,6 +8,16 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
+
 import {
 	Table,
 	TableBody,
@@ -19,9 +29,10 @@ import {
 import { usePermissions } from '@/hooks/user-permissions';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import type { PageProps } from '@/types/page';
 import { User } from '@/types/user';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -41,13 +52,32 @@ export default function Users({ users }: { users: User }) {
 	const { flash } = usePage<{ flash: { message?: string; error: string } }>()
 		.props;
 
+	const { filters } = usePage<PageProps>().props;
+
 	const { can } = usePermissions();
+
+	const [search, setSearch] = useState(filters.q ?? '');
 
 	useEffect(() => {
 		if (flash.message) {
 			toast.success(flash.message);
 		}
 	}, [flash.message]);
+
+	useEffect(() => {
+		const timeout = setTimeout(() => {
+			router.get(
+				'/users',
+				{ q: search },
+				{
+					preserveState: true,
+					replace: true,
+				},
+			);
+		}, 400);
+
+		return () => clearTimeout(timeout);
+	}, [search]);
 
 	return (
 		<AppLayout breadcrumbs={breadcrumbs}>
@@ -66,6 +96,47 @@ export default function Users({ users }: { users: User }) {
 					</CardHeader>
 					<hr />
 					<CardContent>
+						<div className="pb-4">
+							<Table>
+								<TableHeader>
+									<TableRow className="border-none hover:bg-transparent">
+										<TableHead>Search</TableHead>
+										<TableHead>Status</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									<TableRow className="hover:bg-transparent">
+										<TableCell>
+											<Input
+												placeholder="Filter by name or email..."
+												id="search"
+												value={search}
+												onChange={(e) =>
+													setSearch(e.target.value)
+												}
+											/>
+										</TableCell>
+										<TableCell>
+											<Select>
+												<SelectTrigger className="w-[180px]">
+													<SelectValue placeholder="Select a status" />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectGroup>
+														<SelectItem value="active">
+															Active
+														</SelectItem>
+														<SelectItem value="inactive">
+															Inactive
+														</SelectItem>
+													</SelectGroup>
+												</SelectContent>
+											</Select>
+										</TableCell>
+									</TableRow>
+								</TableBody>
+							</Table>
+						</div>
 						<Table>
 							<TableHeader className="bg-slate-500 dark:bg-slate-700">
 								<TableRow>
